@@ -1,0 +1,10 @@
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+*.Rproj
+*.RData
+*.Rhistory
+*.html
+*_files/

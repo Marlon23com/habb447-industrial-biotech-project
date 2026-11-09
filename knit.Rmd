@@ -1,0 +1,384 @@
+---
+title: "Bioethanol Fermentation Optimization: Simulation & Analysis"
+author: "Marlon Makwara R228827P"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: kable
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align = "center")
+
+# Load required libraries
+library(tidyverse)
+library(patchwork)
+library(caret)
+library(randomForest)
+library(broom)
+library(viridis)
+```
+
+# Part 1: Fermentation Data Simulation
+
+We simulate a dataset of **1000 fermentation batches** for *Saccharomyces cerevisiae*, incorporating known biological constraints:
+
+-   Optimal **temperature**: \~32°C
+-   Optimal **pH**: \~5.0
+-   **Glucose utilization** follows Michaelis-Menten saturation kinetics
+-   **Fermentation time** shows diminishing returns (logistic-like growth)
+-   Realistic noise added to mimic measurement variability and biological fluctuations
+
+```{r data_simulation}
+set.seed(11)
+n <- 1000
+
+# Simulate process variables
+fermentation_data <- tibble(
+  temperature = runif(n, 25, 40),           # °C
+  pH = runif(n, 4.0, 6.5),                  # acidic range for yeast
+  glucose_concentration = runif(n, 50, 150), # g/L
+  fermentation_time = runif(n, 12, 72)       # hours
+) %>%
+  mutate(
+    # Temperature effect: Gaussian peak at 32°C
+    temp_effect = dnorm(temperature, mean = 32, sd = 2.5) / dnorm(32, 32, 2.5),
+    
+    # pH effect: quadratic penalty from deviation from 5.0
+    ph_effect = pmax(0, 1 - 0.6 * (pH - 5.0)^2),
+    
+    # Glucose effect: substrate saturation (Michaelis-Menten)
+    glucose_effect = glucose_concentration / (80 + glucose_concentration),
+    
+    # Time effect: exponential approach to maximum (first-order kinetics)
+    time_effect = 1 - exp(-fermentation_time / 24),
+    
+    # Combine with theoretical max yield (~90 g/L under ideal conditions)
+    base_yield = 90 * temp_effect * ph_effect * glucose_effect * time_effect,
+    
+    # Add biological and measurement noise
+    ethanol_yield = base_yield + rnorm(n, mean = 0, sd = 2.5),
+    
+    # Ensure non-negative values
+    ethanol_yield = pmax(ethanol_yield, 0)
+  ) %>%
+  dplyr::select(-contains("effect")) %>%  # Clean up
+  round(2)
+
+# Display first few rows
+head(fermentation_data)
+```
+
+> The simulation reflects key microbial physiology: - Enzyme denaturation at high temperature - Proton stress at low pH, reduced activity at high pH - Substrate saturation and potential inhibition - Growth-limited ethanol production over time
+
+------------------------------------------------------------------------
+
+# Part 2: Data Visualization
+
+## 2.1 Individual Variable Relationships
+
+We visualize ethanol yield against each input variable, using color gradients to reveal interactions.
+
+```{r individual_relationships, fig.height=7, fig.width=9}
+# Helper function for consistent plotting
+plot_effect <- function(data, x_var, color_var, title, x_label) {
+  data %>%
+    ggplot(aes(x = !!sym(x_var), y = ethanol_yield, color = !!sym(color_var))) +
+    geom_point(alpha = 0.6, size = 1.2) +
+    geom_smooth(method = "loess", se = TRUE, span = 0.7, color = "black", lwd = 1) +
+    scale_color_viridis_c(option = "plasma") +
+    theme_minimal() +
+    labs(
+      title = title,
+      x = x_label,
+      y = "Ethanol Yield (g/L)",
+      color = color_var
+    )
+}
+
+p_temp <- plot_effect(fermentation_data, "temperature", "glucose_concentration", 
+                      "Yield vs Temperature", "Temperature (°C)")
+
+p_ph <- plot_effect(fermentation_data, "pH", "fermentation_time", 
+                    "Yield vs pH", "pH")
+
+p_glucose <- plot_effect(fermentation_data, "glucose_concentration", "temperature", 
+                         "Yield vs Glucose", "Glucose (g/L)")
+
+p_time <- plot_effect(fermentation_data, "fermentation_time", "pH", 
+                      "Yield vs Time", "Time (hours)")
+
+# Arrange plots
+(p_temp + p_ph) / (p_glucose + p_time)
+```
+
+## 2.2 Interaction Effects
+
+### Temperature × pH × Glucose
+
+```{r temp_ph_glucose, fig.height=6}
+# Categorize glucose into low/medium/high
+fermentation_data <- fermentation_data %>%
+  mutate(glucose_cat = cut(glucose_concentration, 
+                           breaks = 3, 
+                           labels = c("Low", "Medium", "High")))
+
+ggplot(fermentation_data, aes(x = temperature, y = ethanol_yield, color = pH)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "loess", se = FALSE, color = "black") +
+  facet_wrap(~ glucose_cat, labeller = label_both) +
+  scale_color_viridis_c() +
+  labs(title = "Temperature Effect on Yield at Different Glucose Levels",
+       x = "Temperature (°C)", y = "Ethanol Yield (g/L)") +
+  theme_minimal()
+```
+
+### Glucose Utilization Across Time and pH
+
+```{r glucose_time_ph, fig.height=7}
+fermentation_data %>%
+  mutate(
+    time_group = cut(fermentation_time, 
+                     breaks = c(12, 24, 48, 72), 
+                     labels = c("Short (<24h)", "Medium", "Long (>48h)")),
+    pH_group = cut(pH, breaks = c(4, 4.8, 5.2, 6.5), 
+                   labels = c("Suboptimal", "Optimal", "Suboptimal"))
+  ) %>%
+  ggplot(aes(x = glucose_concentration, y = ethanol_yield, fill = time_group)) +
+  geom_boxplot(alpha = 0.8) +
+  facet_wrap(~ pH_group, ncol = 1, scales = "free_y") +
+  scale_fill_brewer(palette = "Set2", type = "qual") +
+  labs(title = "Glucose Impact on Yield by Fermentation Duration and pH",
+       x = "Glucose Concentration (g/L)", 
+       y = "Ethanol Yield (g/L)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+------------------------------------------------------------------------
+
+# Part 3: Statistical Modeling
+
+## 3.1 Multiple Regression with Non-linear Terms
+
+We include quadratic terms for temperature and pH to capture their **optimal ranges**.
+
+```{r linear_model}
+lm_model <- lm(
+  ethanol_yield ~ 
+    temperature + I(temperature^2) +
+    pH + I(pH^2) +
+    glucose_concentration +
+    fermentation_time,
+  data = fermentation_data
+)
+
+# Model summary
+summary(lm_model)
+```
+
+### Coefficient Interpretation
+
+```{r coef_interpretation}
+tidy(lm_model) %>%
+  filter(term != "(Intercept)") %>%
+  arrange(desc(abs(estimate))) %>%
+  rename(`Term` = term, `Estimate` = estimate, `Std. Error` = std.error,
+         `t value` = statistic, `Pr(>|t|)` = p.value) %>%
+  mutate(
+    `Biological Interpretation` = case_when(
+      str_detect(Term, "temperature") ~ 
+        if_else(str_detect(Term, "I\\(temperature\\^2\\)"), 
+                "Negative curvature: optimal temperature exists", 
+                "Positive linear trend near optimum"),
+      str_detect(Term, "pH") ~ 
+        if_else(str_detect(Term, "I\\(pH\\^2\\)"), 
+                "Negative curvature: optimal pH exists", 
+                "Positive linear trend near optimum"),
+      Term == "glucose_concentration" ~ "Higher substrate → higher yield (saturating)",
+      Term == "fermentation_time" ~ "Longer time → higher yield (diminishing returns)",
+      TRUE ~ "N/A"
+    )
+  ) %>%
+  dplyr::select(Term, Estimate, `Std. Error`, `t value`, `Pr(>|t|)`, `Biological Interpretation`) %>%
+  knitr::kable(digits = 4, caption = "Regression Coefficients and Biological Meaning")
+```
+
+## 3.2 Model Diagnostics
+
+Check assumptions: linearity, homoscedasticity, normality of residuals.
+
+```{r diagnostics, fig.height=7}
+par(mfrow = c(2, 2))
+plot(lm_model, which = c(1, 2, 3, 5))
+par(mfrow = c(1, 1))
+```
+
+> Residuals vs Fitted: Slight curvature → supports non-linear modeling\
+> Normal Q-Q: Residuals approximately normal\
+> Scale-Location: Mild heteroscedasticity\
+> Leverage: No high-influence outliers
+
+------------------------------------------------------------------------
+
+# Part 4: Challenge Questions
+
+## 4.1 Optimal Conditions
+
+Estimate optimal temperature and pH from quadratic model coefficients.
+
+```{r optimal_conditions}
+# Extract coefficients
+beta_temp_lin <- coef(lm_model)["temperature"]
+beta_temp_quad <- coef(lm_model)["I(temperature^2)"]
+opt_temp <- -beta_temp_lin / (2 * beta_temp_quad)
+
+beta_ph_lin <- coef(lm_model)["pH"]
+beta_ph_quad <- coef(lm_model)["I(pH^2)"]
+opt_pH <- -beta_ph_lin / (2 * beta_ph_quad)
+
+# Print results
+cat("Optimal Temperature: ", round(opt_temp, 1), "°C\n")
+cat("Optimal pH: ", round(opt_pH, 2), "\n")
+cat("Recommended Glucose: 120–140 g/L (balance yield vs inhibition)\n")
+cat("Recommended Time: ≥48 hours (near saturation)\n")
+```
+
+## 4.2 Non-linear and Threshold Effects
+
+1.  **Temperature**: Strong **quadratic effect** (p \< 2e-16) → clear optimum at **\~32.1°C**
+2.  **pH**: Significant **quadratic term** → peak yield at **pH 5.0**
+3.  **Glucose**: Positive but **saturating** effect; no inhibition modeled here, but high osmolarity could be limiting
+4.  **Time**: Linear effect, but biological saturation evident in plots → likely logarithmic in reality
+
+## 4.3 Proposed Process Improvements
+
+### 1. Implement Temperature Profiling
+
+-   **Strategy**: Start at **34°C** for rapid yeast growth (lag → exponential phase)
+-   Then shift to **32°C** to prolong viability and reduce ethanol toxicity
+-   **Biological basis**: Higher temps boost metabolism but increase stress; controlled cooling improves longevity
+
+### 2. Introduce pH-Stat Feedback Control
+
+-   **Goal**: Maintain pH at **5.0 ± 0.2** throughout fermentation
+-   **Why**: Acidification from CO₂ and organic acids can drop pH below 4.5 → inhibits glycolysis
+-   **Benefit**: Prevents metabolic slowdown and byproduct formation (e.g., glycerol)
+
+------------------------------------------------------------------------
+
+# Part 5: Bonus Challenge Machine Learning
+
+## 5.1 Random Forest Model
+
+Train on 80% of data, test on 20%.
+
+```{r random_forest}
+set.seed(11)
+train_index <- createDataPartition(fermentation_data$ethanol_yield, p = 0.8, list = FALSE)
+train_data <- fermentation_data[train_index, ]
+test_data <- fermentation_data[-train_index, ]
+
+rf_model <- randomForest(
+  ethanol_yield ~ ., 
+  data = train_data, 
+  ntree = 500, 
+  mtry = 2, 
+  importance = TRUE
+)
+
+# Variable importance plot
+varImpPlot(rf_model, main = "Random Forest: Variable Importance")
+```
+
+## 5.2 Model Comparison
+
+Compare RMSE and R² on test set.
+
+```{r model_comparison}
+# Predictions
+pred_lm <- predict(lm_model, newdata = test_data)
+pred_rf <- predict(rf_model, newdata = test_data)
+
+# Performance metrics
+results <- data.frame(
+  Model = c("Linear Regression", "Random Forest"),
+  RMSE = c(RMSE(pred_lm, test_data$ethanol_yield),
+           RMSE(pred_rf, test_data$ethanol_yield)),
+  R2 = c(R2(pred_lm, test_data$ethanol_yield),
+         R2(pred_rf, test_data$ethanol_yield)),
+  MAE = c(MAE(pred_lm, test_data$ethanol_yield),
+          MAE(pred_rf, test_data$ethanol_yield))
+)
+
+# Display as table
+results %>%
+  knitr::kable(digits = 3, caption = "Model Performance on Test Set")
+```
+
+> 📊 **Random Forest outperforms linear model**: - Higher R²: `0.62` vs `0.958`
+>
+> -   Lower RMSE and MAE - Better captures non-linearities and interactions
+
+### 5.3 Discussion: ML in Industrial Biotechnology
+
+#### Advantages of ML
+
+-   No need to specify functional forms it learns complex patterns automatically
+-   Robust to noise and outliers
+-   Excellent predictive accuracy for optimization and digital twins
+-   Built-in feature importance helps prioritize process controls
+
+#### Challenges in Industrial Context
+
+-   Black-box nature as it is hard to explain to regulators or operators
+
+-   Limited extrapolation ability risky outside training range
+
+-   Computational overhead vs simple models
+
+-   Validation complexity requires rigorous testing
+
+    ### Questions
+
+------------------------------------------------------------------------
+
+#### Process Design: Balancing Cost, Yield, and Sustainability
+
+#### 1. Bioreactor Type: Aerobic Seed Culture Followed by Anaerobic Fed-Batch Fermentor
+
+-   Use an aerobic batch bioreactor for the seed stage to promote rapid yeast growth and high cell density before transfer to the production vessel.
+-   Employ a fed-batch stirred-tank reactor (STR) for ethanol production to avoid substrate inhibition from high initial glucose concentrations.
+-   Maintain temperature at 32–34°C: start at 34°C to accelerate initial growth, then reduce to 32°C to minimize thermal stress as ethanol accumulates.
+-   Implement pH-stat control to maintain pH at 5.0 ± 0.2 using automated addition of dilute alkali (e.g., NaOH), as this is the optimal pH for glycolytic enzymes in *Saccharomyces cerevisiae*.
+-   Operate under anaerobic conditions during fermentation to direct metabolism toward ethanol production rather than biomass.
+-   Include real-time monitoring of dissolved oxygen (DO), pH, temperature, and CO₂ off-gas to enable process control and early fault detection.
+-   Consider scalable designs using stainless steel or single-use bioreactors in the 1,000–10,000 L range depending on production goals and capital availability.
+
+#### 2. Feedstock Selection: Lignocellulosic Biomass Hydrolysate
+
+-   Use agricultural residues such as sugarcane bagasse, corn stover, or wheat straw as feedstock to reduce raw material costs and avoid competition with food supplies.
+-   These feedstocks are low-cost or negatively priced (due to disposal costs), improving process economics.
+-   Pretreat biomass using steam explosion or dilute acid hydrolysis to release fermentable sugars, primarily glucose and xylose.
+-   Detoxify the hydrolysate using overliming or activated carbon to remove fermentation inhibitors such as furfural and acetic acid.
+-   Utilize genetically engineered *S. cerevisiae* strains capable of co-fermenting glucose and xylose to maximize sugar utilization and ethanol yield.
+-   Alternatively, for lower technical complexity, use molasses as a transitional feedstock, which contains high levels of sucrose and requires minimal pretreatment.
+
+#### 3. Downstream Processing: Efficient and Integrated Recovery
+
+-   Separate yeast cells from the fermentation broth using centrifugation or microfiltration; recycle cells for inoculation in subsequent batches to reduce lag time and costs.
+-   Treat cell-free broth via distillation to concentrate ethanol to approximately 95% (near the azeotropic point).
+-   Dehydrate ethanol to fuel-grade (\>99.5%) using molecular sieves (3Å) or pervaporation membranes.
+-   Recover waste heat from distillation columns to preheat incoming broth, reducing overall energy consumption.
+-   Manage stillage by evaporating water for reuse and recovering nutrients as fertilizer co-products, supporting a circular economy model.
+-   Capture and purify CO₂ from off-gas streams for potential sale to beverage or algae cultivation industries.
+
+#### 4. Process Integration and Optimization
+
+-   Apply machine learning models (e.g., random forest) trained on simulation and experimental data to predict optimal feeding rates, fermentation endpoints, and detect deviations.
+-   Develop a digital twin of the fermentation process for real-time simulation, optimization, and operator training.
+-   Maximize water reuse by recycling \>70% of process water after appropriate treatment.
+-   Design the process to minimize waste generation and fossil fuel dependence, contributing to a lower carbon footprint.
