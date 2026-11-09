@@ -11,6 +11,24 @@ This project combines process modelling, exploratory analysis, and data visualis
 - [Open the knitted report](knit.html)
 - [Open the Quarto report](bioprocess_simulation.html)
 
+## Research focus
+
+This project explores how a fermentation process behaves under simulated industrial conditions. The analysis focuses on the interaction between key process variables, identifying operational trends and evaluating how those variables contribute to overall bioprocess performance.
+
+## Methodology
+
+- Simulated fermentation data was generated to model realistic process variation over time.
+- Time-series visualisation was used to explore how glucose concentration, pH, and temperature evolve during production.
+- Relationship analysis was applied to identify patterns and dependencies between process variables.
+- Diagnostics were reviewed to assess model quality and interpret the effectiveness of the simulation workflow.
+
+## Key outcomes
+
+- The project identified clear temporal patterns in fermentation behaviour and process stability.
+- Variable interactions highlighted the importance of monitoring glucose, pH, and temperature jointly during production.
+- Diagnostic plots showed how the model and process data can be interpreted for practical decision-making.
+- The final output provides a clear summary of the simulated bioprocess in a presentation-ready academic format.
+
 ## Key findings at a glance
 
 ### Fermentation dynamics
