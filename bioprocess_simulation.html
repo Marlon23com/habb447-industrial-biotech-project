@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Marlon Makwara R228827P">
+<meta name="dcterms.date" content="2025-08-14">
+
+<title>Bioethanol Fermentation Optimization: Simulation &amp; Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="bioprocess_simulation_files/libs/clipboard/clipboard.min.js"></script>
+<script src="bioprocess_simulation_files/libs/quarto-html/quarto.js"></script>
+<script src="bioprocess_simulation_files/libs/quarto-html/popper.min.js"></script>
+<script src="bioprocess_simulation_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="bioprocess_simulation_files/libs/quarto-html/anchor.min.js"></script>
+<link href="bioprocess_simulation_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="bioprocess_simulation_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="bioprocess_simulation_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="bioprocess_simulation_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="bioprocess_simulation_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#part-1-fermentation-data-simulation" id="toc-part-1-fermentation-data-simulation" class="nav-link active" data-scroll-target="#part-1-fermentation-data-simulation">Part 1: Fermentation Data Simulation</a></li>
+  <li><a href="#part-2-data-visualization" id="toc-part-2-data-visualization" class="nav-link" data-scroll-target="#part-2-data-visualization">Part 2: Data Visualization</a>
+  <ul class="collapse">
+  <li><a href="#individual-variable-relationships" id="toc-individual-variable-relationships" class="nav-link" data-scroll-target="#individual-variable-relationships">2.1 Individual Variable Relationships</a></li>
+  <li><a href="#interaction-effects" id="toc-interaction-effects" class="nav-link" data-scroll-target="#interaction-effects">2.2 Interaction Effects</a></li>
+  </ul></li>
+  <li><a href="#part-3-statistical-modeling" id="toc-part-3-statistical-modeling" class="nav-link" data-scroll-target="#part-3-statistical-modeling">Part 3: Statistical Modeling</a>
+  <ul class="collapse">
+  <li><a href="#multiple-regression-with-non-linear-terms" id="toc-multiple-regression-with-non-linear-terms" class="nav-link" data-scroll-target="#multiple-regression-with-non-linear-terms">3.1 Multiple Regression with Non-linear Terms</a></li>
+  <li><a href="#coefficient-interpretation" id="toc-coefficient-interpretation" class="nav-link" data-scroll-target="#coefficient-interpretation">Coefficient Interpretation</a></li>
+  <li><a href="#model-diagnostics" id="toc-model-diagnostics" class="nav-link" data-scroll-target="#model-diagnostics">3.2 Model Diagnostics</a></li>
+  </ul></li>
+  <li><a href="#part-4-challenge-questions" id="toc-part-4-challenge-questions" class="nav-link" data-scroll-target="#part-4-challenge-questions">Part 4: Challenge Questions</a>
+  <ul class="collapse">
+  <li><a href="#optimal-conditions" id="toc-optimal-conditions" class="nav-link" data-scroll-target="#optimal-conditions">4.1 Optimal Conditions</a></li>
+  <li><a href="#non-linear-and-threshold-effects" id="toc-non-linear-and-threshold-effects" class="nav-link" data-scroll-target="#non-linear-and-threshold-effects">4.2 Non-linear and Threshold Effects</a></li>
+  <li><a href="#proposed-process-improvements" id="toc-proposed-process-improvements" class="nav-link" data-scroll-target="#proposed-process-improvements">4.3 Proposed Process Improvements</a></li>
+  </ul></li>
+  <li><a href="#part-5-bonus-challenge-machine-learning" id="toc-part-5-bonus-challenge-machine-learning" class="nav-link" data-scroll-target="#part-5-bonus-challenge-machine-learning">Part 5: Bonus Challenge — Machine Learning</a>
+  <ul class="collapse">
+  <li><a href="#random-forest-model" id="toc-random-forest-model" class="nav-link" data-scroll-target="#random-forest-model">5.1 Random Forest Model</a></li>
+  <li><a href="#model-comparison" id="toc-model-comparison" class="nav-link" data-scroll-target="#model-comparison">5.2 Model Comparison</a></li>
+  <li><a href="#discussion-ml-in-industrial-biotechnology" id="toc-discussion-ml-in-industrial-biotechnology" class="nav-link" data-scroll-target="#discussion-ml-in-industrial-biotechnology">5.3 Discussion: ML in Industrial Biotechnology</a></li>
+  </ul></li>
+  <li><a href="#questions" id="toc-questions" class="nav-link" data-scroll-target="#questions">Questions</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Bioethanol Fermentation Optimization: Simulation &amp; Analysis</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Marlon Makwara R228827P </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 14, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="part-1-fermentation-data-simulation" class="level2">
+<h2 class="anchored" data-anchor-id="part-1-fermentation-data-simulation">Part 1: Fermentation Data Simulation</h2>
+<p>We simulate a dataset of 1000 fermentation batches for <em>Saccharomyces cerevisiae</em>, incorporating known biological constraints:</p>
+<ul>
+<li>Optimal temperature: ~32°C<br>
+</li>
+<li>Optimal pH: ~5.0<br>
+</li>
+<li>Glucose utilization follows Michaelis-Menten saturation kinetics<br>
+</li>
+<li>Fermentation time shows diminishing returns (logistic-like growth)<br>
+</li>
+<li>Realistic noise added to mimic measurement variability and biological fluctuations</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.2     ✔ tibble    3.3.0
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.4     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: lattice
+
+Attaching package: 'caret'
+
+The following object is masked from 'package:purrr':
+
+    lift</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>randomForest 4.7-1.2
+Type rfNews() to see new features/changes/bug fixes.
+
+Attaching package: 'randomForest'
+
+The following object is masked from 'package:dplyr':
+
+    combine
+
+The following object is masked from 'package:ggplot2':
+
+    margin</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(viridis)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: viridisLite</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>) <span class="co"># for reproducibility</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span> <span class="co"># number of samples</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate process variables</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>fermentation_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">temperature =</span> <span class="fu">runif</span>(n, <span class="dv">25</span>, <span class="dv">40</span>),           <span class="co"># °C</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">pH =</span> <span class="fu">runif</span>(n, <span class="fl">4.0</span>, <span class="fl">6.5</span>),                  <span class="co"># acidic range for yeast</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">glucose_concentration =</span> <span class="fu">runif</span>(n, <span class="dv">50</span>, <span class="dv">150</span>), <span class="co"># g/L</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">fermentation_time =</span> <span class="fu">runif</span>(n, <span class="dv">12</span>, <span class="dv">72</span>)       <span class="co"># hours</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Temperature effect: Gaussian peak at 32°C</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">temp_effect =</span> <span class="fu">dnorm</span>(temperature, <span class="at">mean =</span> <span class="dv">32</span>, <span class="at">sd =</span> <span class="fl">2.5</span>) <span class="sc">/</span> <span class="fu">dnorm</span>(<span class="dv">32</span>, <span class="dv">32</span>, <span class="fl">2.5</span>),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># pH effect: quadratic penalty from deviation from 5.0</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">ph_effect =</span> <span class="fu">pmax</span>(<span class="dv">0</span>, <span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.6</span> <span class="sc">*</span> (pH <span class="sc">-</span> <span class="fl">5.0</span>)<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Glucose effect: substrate saturation (Michaelis-Menten)</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">glucose_effect =</span> glucose_concentration <span class="sc">/</span> (<span class="dv">80</span> <span class="sc">+</span> glucose_concentration),</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Time effect: exponential approach to maximum (first-order kinetics)</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_effect =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>fermentation_time <span class="sc">/</span> <span class="dv">24</span>),</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Combine with theoretical max yield (~90 g/L under ideal conditions)</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">base_yield =</span> <span class="dv">90</span> <span class="sc">*</span> temp_effect <span class="sc">*</span> ph_effect <span class="sc">*</span> glucose_effect <span class="sc">*</span> time_effect,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add biological and measurement noise</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">ethanol_yield =</span> base_yield <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="fl">2.5</span>),</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Ensure non-negative values</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">ethanol_yield =</span> <span class="fu">pmax</span>(ethanol_yield, <span class="dv">0</span>)</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span><span class="fu">contains</span>(<span class="st">"effect"</span>)) <span class="sc">%&gt;%</span>  <span class="co"># Clean up</span></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">2</span>)</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Display first few rows</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(fermentation_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 6
+  temperature    pH glucose_concentration fermentation_time base_yield
+        &lt;dbl&gt; &lt;dbl&gt;                 &lt;dbl&gt;             &lt;dbl&gt;      &lt;dbl&gt;
+1        29.2  6.07                  84.4              49.9       6.65
+2        25.0  5.96                  83.7              68.1       0.38
+3        32.7  4.22                  85.5              20.4      16.4 
+4        25.2  5.89                 119.               63.4       0.66
+5        26.0  5.65                  83.5              70.0       1.77
+6        39.3  6.43                 137.               40.4       0   
+# ℹ 1 more variable: ethanol_yield &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>The simulation reflects key microbial physiology: - Enzyme denaturation at high temperature<br>
+- Proton stress at low pH, reduced activity at high pH<br>
+- Substrate saturation and potential inhibition<br>
+- Growth-limited ethanol production over time</p>
+</section>
+<section id="part-2-data-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="part-2-data-visualization">Part 2: Data Visualization</h2>
+<section id="individual-variable-relationships" class="level3">
+<h3 class="anchored" data-anchor-id="individual-variable-relationships">2.1 Individual Variable Relationships</h3>
+<p>We visualize ethanol yield against each input variable, using color gradients to reveal interactions.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function for consistent plotting</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>plot_effect <span class="ot">&lt;-</span> <span class="cf">function</span>(data, x_var, color_var, title, x_label) {</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  data <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="sc">!!</span><span class="fu">sym</span>(x_var), <span class="at">y =</span> ethanol_yield, <span class="at">color =</span> <span class="sc">!!</span><span class="fu">sym</span>(color_var))) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">size =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>, <span class="at">span =</span> <span class="fl">0.7</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">lwd =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_viridis_c</span>(<span class="at">option =</span> <span class="st">"plasma"</span>) <span class="sc">+</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">title =</span> title,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> x_label,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> <span class="st">"Ethanol Yield (g/L)"</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> color_var</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>p_temp <span class="ot">&lt;-</span> <span class="fu">plot_effect</span>(fermentation_data, <span class="st">"temperature"</span>, <span class="st">"glucose_concentration"</span>, </span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Yield vs Temperature"</span>, <span class="st">"Temperature (°C)"</span>)</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>p_ph <span class="ot">&lt;-</span> <span class="fu">plot_effect</span>(fermentation_data, <span class="st">"pH"</span>, <span class="st">"fermentation_time"</span>, </span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>                    <span class="st">"Yield vs pH"</span>, <span class="st">"pH"</span>)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>p_glucose <span class="ot">&lt;-</span> <span class="fu">plot_effect</span>(fermentation_data, <span class="st">"glucose_concentration"</span>, <span class="st">"temperature"</span>, </span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>                         <span class="st">"Yield vs Glucose"</span>, <span class="st">"Glucose (g/L)"</span>)</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>p_time <span class="ot">&lt;-</span> <span class="fu">plot_effect</span>(fermentation_data, <span class="st">"fermentation_time"</span>, <span class="st">"pH"</span>, </span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Yield vs Time"</span>, <span class="st">"Time (hours)"</span>)</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Arrange plots</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>(p_temp <span class="sc">+</span> p_ph) <span class="sc">/</span> (p_glucose <span class="sc">+</span> p_time)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'
+`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bioprocess_simulation_files/figure-html/individual_relationships-1.png" class="img-fluid figure-img" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="interaction-effects" class="level3">
+<h3 class="anchored" data-anchor-id="interaction-effects">2.2 Interaction Effects</h3>
+<section id="temperature-ph-glucose" class="level4">
+<h4 class="anchored" data-anchor-id="temperature-ph-glucose">Temperature × pH × Glucose</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Categorize glucose into low/medium/high</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>fermentation_data <span class="ot">&lt;-</span> fermentation_data <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">glucose_cat =</span> <span class="fu">cut</span>(glucose_concentration, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">breaks =</span> <span class="dv">3</span>, </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)))</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(fermentation_data, <span class="fu">aes</span>(<span class="at">x =</span> temperature, <span class="at">y =</span> ethanol_yield, <span class="at">color =</span> pH)) <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> glucose_cat, <span class="at">labeller =</span> label_both) <span class="sc">+</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Temperature Effect on Yield at Different Glucose Levels"</span>,</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Temperature (°C)"</span>, <span class="at">y =</span> <span class="st">"Ethanol Yield (g/L)"</span>) <span class="sc">+</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bioprocess_simulation_files/figure-html/temp_ph_glucose-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="glucose-utilization-across-time-and-ph" class="level4">
+<h4 class="anchored" data-anchor-id="glucose-utilization-across-time-and-ph">Glucose Utilization Across Time and pH</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fermentation_data <span class="sc">%&gt;%</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_group =</span> <span class="fu">cut</span>(fermentation_time, </span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">12</span>, <span class="dv">24</span>, <span class="dv">48</span>, <span class="dv">72</span>), </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Short (&lt;24h)"</span>, <span class="st">"Medium"</span>, <span class="st">"Long (&gt;48h)"</span>)),</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">pH_group =</span> <span class="fu">cut</span>(pH, <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="fl">4.8</span>, <span class="fl">5.2</span>, <span class="fl">6.5</span>), </span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Suboptimal"</span>, <span class="st">"Optimal"</span>, <span class="st">"Suboptimal"</span>))</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> glucose_concentration, <span class="at">y =</span> ethanol_yield, <span class="at">fill =</span> time_group)) <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> pH_group, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Set2"</span>, <span class="at">type =</span> <span class="st">"qual"</span>) <span class="sc">+</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Glucose Impact on Yield by Fermentation Duration and pH"</span>,</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Glucose Concentration (g/L)"</span>, </span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Ethanol Yield (g/L)"</span>) <span class="sc">+</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">30</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bioprocess_simulation_files/figure-html/glucose_time_ph-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="part-3-statistical-modeling" class="level2">
+<h2 class="anchored" data-anchor-id="part-3-statistical-modeling">Part 3: Statistical Modeling</h2>
+<section id="multiple-regression-with-non-linear-terms" class="level3">
+<h3 class="anchored" data-anchor-id="multiple-regression-with-non-linear-terms">3.1 Multiple Regression with Non-linear Terms</h3>
+<p>We include quadratic terms for temperature and pH to capture their optimal ranges.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>lm_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  ethanol_yield <span class="sc">~</span> </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    temperature <span class="sc">+</span> <span class="fu">I</span>(temperature<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    pH <span class="sc">+</span> <span class="fu">I</span>(pH<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    glucose_concentration <span class="sc">+</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    fermentation_time,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> fermentation_data</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Model summary</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lm_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = ethanol_yield ~ temperature + I(temperature^2) + 
+    pH + I(pH^2) + glucose_concentration + fermentation_time, 
+    data = fermentation_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-14.636  -5.178  -1.492   3.982  25.808 
+
+Coefficients:
+                        Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)           -6.356e+02  1.910e+01 -33.275  &lt; 2e-16 ***
+temperature            2.858e+01  8.526e-01  33.523  &lt; 2e-16 ***
+I(temperature^2)      -4.428e-01  1.310e-02 -33.805  &lt; 2e-16 ***
+pH                     7.573e+01  4.964e+00  15.256  &lt; 2e-16 ***
+I(pH^2)               -7.615e+00  4.714e-01 -16.152  &lt; 2e-16 ***
+glucose_concentration  5.024e-02  7.813e-03   6.430 1.97e-10 ***
+fermentation_time      1.116e-01  1.295e-02   8.616  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 6.895 on 993 degrees of freedom
+Multiple R-squared:  0.636, Adjusted R-squared:  0.6338 
+F-statistic: 289.2 on 6 and 993 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+</section>
+<section id="coefficient-interpretation" class="level3">
+<h3 class="anchored" data-anchor-id="coefficient-interpretation">Coefficient Interpretation</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tidy</span>(lm_model) <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(estimate))) <span class="sc">%&gt;%</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="st">`</span><span class="at">Term</span><span class="st">`</span> <span class="ot">=</span> term, <span class="st">`</span><span class="at">Estimate</span><span class="st">`</span> <span class="ot">=</span> estimate, <span class="st">`</span><span class="at">Std. Error</span><span class="st">`</span> <span class="ot">=</span> std.error,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">t value</span><span class="st">`</span> <span class="ot">=</span> statistic, <span class="st">`</span><span class="at">Pr(&gt;|t|)</span><span class="st">`</span> <span class="ot">=</span> p.value) <span class="sc">%&gt;%</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Biological Interpretation</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">case_when</span>(</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_detect</span>(Term, <span class="st">"temperature"</span>) <span class="sc">~</span> </span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">if_else</span>(<span class="fu">str_detect</span>(Term, <span class="st">"I</span><span class="sc">\\</span><span class="st">(temperature</span><span class="sc">\\</span><span class="st">^2</span><span class="sc">\\</span><span class="st">)"</span>), </span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Negative curvature: optimal temperature exists"</span>, </span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Positive linear trend near optimum"</span>),</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_detect</span>(Term, <span class="st">"pH"</span>) <span class="sc">~</span> </span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">if_else</span>(<span class="fu">str_detect</span>(Term, <span class="st">"I</span><span class="sc">\\</span><span class="st">(pH</span><span class="sc">\\</span><span class="st">^2</span><span class="sc">\\</span><span class="st">)"</span>), </span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Negative curvature: optimal pH exists"</span>, </span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>                <span class="st">"Positive linear trend near optimum"</span>),</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>      Term <span class="sc">==</span> <span class="st">"glucose_concentration"</span> <span class="sc">~</span> <span class="st">"Higher substrate → higher yield (saturating)"</span>,</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>      Term <span class="sc">==</span> <span class="st">"fermentation_time"</span> <span class="sc">~</span> <span class="st">"Longer time → higher yield (diminishing returns)"</span>,</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"N/A"</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(Term, Estimate, <span class="st">`</span><span class="at">Std. Error</span><span class="st">`</span>, <span class="st">`</span><span class="at">t value</span><span class="st">`</span>, <span class="st">`</span><span class="at">Pr(&gt;|t|)</span><span class="st">`</span>, <span class="st">`</span><span class="at">Biological Interpretation</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">4</span>, <span class="at">caption =</span> <span class="st">"Regression Coefficients and Biological Meaning"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Regression Coefficients and Biological Meaning</caption>
+<colgroup>
+<col style="width: 18%">
+<col style="width: 7%">
+<col style="width: 9%">
+<col style="width: 7%">
+<col style="width: 15%">
+<col style="width: 41%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Term</th>
+<th style="text-align: right;">Estimate</th>
+<th style="text-align: right;">Std. Error</th>
+<th style="text-align: right;">t value</th>
+<th style="text-align: right;">Pr(&gt;|t|)</th>
+<th style="text-align: left;">Biological Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">pH</td>
+<td style="text-align: right;">75.7350</td>
+<td style="text-align: right;">4.9644</td>
+<td style="text-align: right;">15.2557</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Positive linear trend near optimum</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">temperature</td>
+<td style="text-align: right;">28.5821</td>
+<td style="text-align: right;">0.8526</td>
+<td style="text-align: right;">33.5229</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Positive linear trend near optimum</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">I(pH^2)</td>
+<td style="text-align: right;">-7.6145</td>
+<td style="text-align: right;">0.4714</td>
+<td style="text-align: right;">-16.1516</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Negative curvature: optimal pH exists</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">I(temperature^2)</td>
+<td style="text-align: right;">-0.4428</td>
+<td style="text-align: right;">0.0131</td>
+<td style="text-align: right;">-33.8047</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Negative curvature: optimal temperature exists</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">fermentation_time</td>
+<td style="text-align: right;">0.1116</td>
+<td style="text-align: right;">0.0129</td>
+<td style="text-align: right;">8.6161</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Longer time → higher yield (diminishing returns)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">glucose_concentration</td>
+<td style="text-align: right;">0.0502</td>
+<td style="text-align: right;">0.0078</td>
+<td style="text-align: right;">6.4304</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;">Higher substrate → higher yield (saturating)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="model-diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="model-diagnostics">3.2 Model Diagnostics</h3>
+<p>Check assumptions: linearity, homoscedasticity, normality of residuals.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lm_model, <span class="at">which =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bioprocess_simulation_files/figure-html/diagnostics-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li><strong>Residuals vs Fitted</strong>: Slight curvature → supports non-linear modeling<br>
+</li>
+<li><strong>Normal Q-Q</strong>: Residuals approximately normal<br>
+</li>
+<li><strong>Scale-Location</strong>: Mild heteroscedasticity<br>
+</li>
+<li><strong>Leverage</strong>: No high-influence outliers</li>
+</ul>
+</section>
+</section>
+<section id="part-4-challenge-questions" class="level2">
+<h2 class="anchored" data-anchor-id="part-4-challenge-questions">Part 4: Challenge Questions</h2>
+<section id="optimal-conditions" class="level3">
+<h3 class="anchored" data-anchor-id="optimal-conditions">4.1 Optimal Conditions</h3>
+<p>Estimate optimal temperature and pH from quadratic model coefficients.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract coefficients</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>beta_temp_lin <span class="ot">&lt;-</span> <span class="fu">coef</span>(lm_model)[<span class="st">"temperature"</span>]</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>beta_temp_quad <span class="ot">&lt;-</span> <span class="fu">coef</span>(lm_model)[<span class="st">"I(temperature^2)"</span>]</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>opt_temp <span class="ot">&lt;-</span> <span class="sc">-</span>beta_temp_lin <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> beta_temp_quad)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>beta_ph_lin <span class="ot">&lt;-</span> <span class="fu">coef</span>(lm_model)[<span class="st">"pH"</span>]</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>beta_ph_quad <span class="ot">&lt;-</span> <span class="fu">coef</span>(lm_model)[<span class="st">"I(pH^2)"</span>]</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>opt_pH <span class="ot">&lt;-</span> <span class="sc">-</span>beta_ph_lin <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> beta_ph_quad)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Print results</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Optimal Temperature: "</span>, <span class="fu">round</span>(opt_temp, <span class="dv">1</span>), <span class="st">"°C</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Optimal Temperature:  32.3 °C</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Optimal pH: "</span>, <span class="fu">round</span>(opt_pH, <span class="dv">2</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Optimal pH:  4.97 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Recommended Glucose: 120–140 g/L (balance yield vs inhibition)</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Recommended Glucose: 120–140 g/L (balance yield vs inhibition)</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Recommended Time: ≥48 hours (near saturation)</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Recommended Time: ≥48 hours (near saturation)</code></pre>
+</div>
+</div>
+</section>
+<section id="non-linear-and-threshold-effects" class="level3">
+<h3 class="anchored" data-anchor-id="non-linear-and-threshold-effects">4.2 Non-linear and Threshold Effects</h3>
+<ul>
+<li><strong>Temperature</strong>: Strong quadratic effect (p &lt; 2e-16) → clear optimum at ~32.1°C<br>
+</li>
+<li><strong>pH</strong>: Significant quadratic term → peak yield at pH 5.0<br>
+</li>
+<li><strong>Glucose</strong>: Positive but saturating effect; no inhibition modeled here, but high osmolarity could be limiting<br>
+</li>
+<li><strong>Time</strong>: Linear effect, but biological saturation evident in plots → likely logarithmic in reality</li>
+</ul>
+</section>
+<section id="proposed-process-improvements" class="level3">
+<h3 class="anchored" data-anchor-id="proposed-process-improvements">4.3 Proposed Process Improvements</h3>
+<p><strong>1. Implement Temperature Profiling</strong><br>
+- <em>Strategy</em>: Start at 34°C for rapid yeast growth (lag → exponential phase), then shift to 32°C to prolong viability and reduce ethanol toxicity<br>
+- <em>Biological basis</em>: Higher temps boost metabolism but increase stress; controlled cooling improves longevity</p>
+<p><strong>2. Introduce pH-Stat Feedback Control</strong><br>
+- <em>Goal</em>: Maintain pH at 5.0 ± 0.2 throughout fermentation<br>
+- <em>Why</em>: Acidification from CO₂ and organic acids can drop pH below 4.5 → inhibits glycolysis<br>
+- <em>Benefit</em>: Prevents metabolic slowdown and byproduct formation (e.g., glycerol)</p>
+</section>
+</section>
+<section id="part-5-bonus-challenge-machine-learning" class="level2">
+<h2 class="anchored" data-anchor-id="part-5-bonus-challenge-machine-learning">Part 5: Bonus Challenge — Machine Learning</h2>
+<section id="random-forest-model" class="level3">
+<h3 class="anchored" data-anchor-id="random-forest-model">5.1 Random Forest Model</h3>
+<p>Train on 80% of data, test on 20%.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">11</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>train_index <span class="ot">&lt;-</span> <span class="fu">createDataPartition</span>(fermentation_data<span class="sc">$</span>ethanol_yield, <span class="at">p =</span> <span class="fl">0.8</span>, <span class="at">list =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>train_data <span class="ot">&lt;-</span> fermentation_data[train_index, ]</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>test_data <span class="ot">&lt;-</span> fermentation_data[<span class="sc">-</span>train_index, ]</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>rf_model <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  ethanol_yield <span class="sc">~</span> ., </span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> train_data, </span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">ntree =</span> <span class="dv">500</span>, </span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">mtry =</span> <span class="dv">2</span>, </span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">importance =</span> <span class="cn">TRUE</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Variable importance plot</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="fu">varImpPlot</span>(rf_model, <span class="at">main =</span> <span class="st">"Random Forest: Variable Importance"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="bioprocess_simulation_files/figure-html/random_forest-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="model-comparison" class="level3">
+<h3 class="anchored" data-anchor-id="model-comparison">5.2 Model Comparison</h3>
+<p>Compare RMSE and R² on test set.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Predictions</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>pred_lm <span class="ot">&lt;-</span> <span class="fu">predict</span>(lm_model, <span class="at">newdata =</span> test_data)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>pred_rf <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf_model, <span class="at">newdata =</span> test_data)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Performance metrics</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Linear Regression"</span>, <span class="st">"Random Forest"</span>),</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">RMSE =</span> <span class="fu">c</span>(<span class="fu">RMSE</span>(pred_lm, test_data<span class="sc">$</span>ethanol_yield),</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>           <span class="fu">RMSE</span>(pred_rf, test_data<span class="sc">$</span>ethanol_yield)),</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">R2 =</span> <span class="fu">c</span>(<span class="fu">R2</span>(pred_lm, test_data<span class="sc">$</span>ethanol_yield),</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>         <span class="fu">R2</span>(pred_rf, test_data<span class="sc">$</span>ethanol_yield)),</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">MAE =</span> <span class="fu">c</span>(<span class="fu">MAE</span>(pred_lm, test_data<span class="sc">$</span>ethanol_yield),</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>          <span class="fu">MAE</span>(pred_rf, test_data<span class="sc">$</span>ethanol_yield))</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Display as table</span></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>results <span class="sc">%&gt;%</span></span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Model Performance on Test Set"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Model Performance on Test Set</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">RMSE</th>
+<th style="text-align: right;">R2</th>
+<th style="text-align: right;">MAE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Linear Regression</td>
+<td style="text-align: right;">7.456</td>
+<td style="text-align: right;">0.626</td>
+<td style="text-align: right;">5.862</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Random Forest</td>
+<td style="text-align: right;">2.570</td>
+<td style="text-align: right;">0.958</td>
+<td style="text-align: right;">2.000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><strong>Random Forest outperforms linear model</strong>:<br>
+- Higher R²<br>
+- Lower RMSE and MAE<br>
+- Better captures non-linearities and interactions</p>
+</section>
+<section id="discussion-ml-in-industrial-biotechnology" class="level3">
+<h3 class="anchored" data-anchor-id="discussion-ml-in-industrial-biotechnology">5.3 Discussion: ML in Industrial Biotechnology</h3>
+<p><strong>Advantages of ML</strong><br>
+- No need to specify functional forms since it learns complex patterns automatically<br>
+- It is robust to noise and outliers<br>
+- Has excellent predictive accuracy for optimization<br>
+- Having built-in feature importance helps prioritize process controls</p>
+<p><strong>Challenges in Industrial Context</strong><br>
+- Black-box nature as it is hard to explain to regulators or operators<br>
+- Limited extrapolation ability since it is risky outside training range<br>
+- Computational overhead requires simple models to prevent computational demand<br>
+- Validation complexity requires rigorous testing</p>
+</section>
+</section>
+<section id="questions" class="level2">
+<h2 class="anchored" data-anchor-id="questions">Questions</h2>
+<section id="process-design-balancing-cost-yield-and-sustainability" class="level4">
+<h4 class="anchored" data-anchor-id="process-design-balancing-cost-yield-and-sustainability"><strong>1. Process Design: Balancing Cost, Yield, and Sustainability</strong></h4>
+<p>To develop an economically viable and environmentally responsible bioethanol production process an integrated fermentation system that leverages biological insights, process optimization and sustainable engineering principles. The design balances high ethanol yield with operational cost-efficiency and environmental impact reduction across four key domains: bioreactor configuration, feedstock selection, downstream processing and digital integration.</p>
+</section>
+<section id="bioreactor-configuration-aerobic-seed-culture-followed-by-anaerobic-fed-batch-fermentation" class="level4">
+<h4 class="anchored" data-anchor-id="bioreactor-configuration-aerobic-seed-culture-followed-by-anaerobic-fed-batch-fermentation"><strong>Bioreactor Configuration: Aerobic Seed Culture Followed by Anaerobic Fed-Batch Fermentation</strong></h4>
+<p>The fermentation process employs a two-stage bioreactor system to maximize yeast performance and ethanol productivity.</p>
+<p>An aerobic batch bioreactor is used to cultivate a high-density inoculum of <em>Saccharomyces cerevisiae</em>. Aeration during this phase supports rapid biomass growth through respiratory metabolism, reducing lag time in the production stage.</p>
+<p>The culture is transferred to a fed-batch stirred-tank reactor (STR) operating under anaerobic conditions to promote alcoholic fermentation. This mode prevents substrate inhibition by avoiding high initial glucose concentrations, which can cause osmotic stress and reduce cell viability.</p>
+<p>The process begins at 34°C to accelerate early metabolic activity and is gradually reduced to 32°C as ethanol accumulates, minimizing thermal and solvent stress on yeast cells.</p>
+<p>A pH-stat control system maintains the environment at pH 5.0 ± 0.2 through automated addition of dilute NaOH. This range aligns with the optimal activity of glycolytic enzymes such as phosphofructokinase and pyruvate decarboxylase.</p>
+<p>Real-time sensors track dissolved oxygen (DO), pH, temperature and CO₂ off-gas to ensure stable operation and enable early detection of deviations.</p>
+<p>The system can be implemented using stainless steel or single-use bioreactors in the 1,000–10,000 L range, allowing flexibility based on capital availability and production scale.</p>
+</section>
+<section id="feedstock-selection-sustainable-use-of-lignocellulosic-biomass" class="level4">
+<h4 class="anchored" data-anchor-id="feedstock-selection-sustainable-use-of-lignocellulosic-biomass"><strong>Feedstock Selection: Sustainable Use of Lignocellulosic Biomass</strong></h4>
+<p>To minimize costs and avoid competition with food resources, the process utilizes lignocellulosic agricultural residues such as sugarcane bagasse, corn stover, or wheat straw.</p>
+<p>These feedstocks are low-cost or negatively priced due to disposal burdens, significantly reducing raw material expenses.</p>
+<p>Biomass undergoes pretreatment via steam explosion or dilute acid hydrolysis to break down cellulose and hemicellulose into fermentable sugars, primarily glucose and xylose.</p>
+<p>The resulting hydrolysate is detoxified using overliming or activated carbon to remove inhibitory compounds like furfural and acetic acid, which impair yeast metabolism.</p>
+<p>A genetically engineered strain of <em>S. cerevisiae</em> capable of co-fermenting both glucose and xylose is employed to maximize carbon utilization and ethanol yield.</p>
+<p>For facilities with limited technical capacity, molasses serves as a transitional feedstock—rich in sucrose and requiring minimal pretreatment allowing for gradual scaling toward advanced biofuel production.</p>
+</section>
+<section id="downstream-processing-energy-efficient-and-circular-recovery" class="level4">
+<h4 class="anchored" data-anchor-id="downstream-processing-energy-efficient-and-circular-recovery"><strong>Downstream Processing: Energy-Efficient and Circular Recovery</strong></h4>
+<p>Ethanol recovery is designed for high efficiency and resource conservation.</p>
+<p>Yeast cells are removed via centrifugation or microfiltration and recycled as inoculum, reducing the need for frequent re-cultivation and lowering operational costs.</p>
+<p>The clarified broth is concentrated to ~95% ethanol using multi-stage distillation.</p>
+<p>Final purification to fuel-grade (&gt;99.5%) ethanol is achieved using 3Å molecular sieves or pervaporation membranes, both highly effective and scalable technologies.</p>
+<p>Waste heat from distillation columns is recovered to preheat incoming fermentation broth, significantly reducing energy demand.</p>
+<p>The residual stillage is evaporated to recover water for reuse (&gt;70% recycling rate), while concentrated solids are processed into nutrient-rich fertilizer, supporting a circular economy model.</p>
+<p>Carbon dioxide produced during fermentation is captured and purified for potential sale to beverage manufacturers or use in algae cultivation systems.</p>
+</section>
+<section id="process-integration-and-digital-optimization" class="level4">
+<h4 class="anchored" data-anchor-id="process-integration-and-digital-optimization"><strong>Process Integration and Digital Optimization</strong></h4>
+<p>Advanced data analytics enhance process reliability and performance.</p>
+<p>Machine Learning Models (e.g., random forest) trained on historical and simulated data are used to predict optimal feeding strategies, fermentation endpoints, and detect anomalies in real time.</p>
+<p>A digital twin of the fermentation process enables dynamic simulation, operator training, and what-if scenario analysis without disrupting production.</p>
+<p>Water reuse, waste minimization, and renewable energy integration ensure the process contributes to a lower carbon footprint, aligning with global sustainability goals.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

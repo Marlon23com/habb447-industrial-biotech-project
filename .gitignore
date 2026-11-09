@@ -7,4 +7,8 @@
 *.RData
 *.Rhistory
 *.html
+!knit.html
+!bioprocess_simulation.html
 *_files/
+!bioprocess_simulation_files/
+!bioprocess_simulation_files/**
